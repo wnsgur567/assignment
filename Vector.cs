@@ -8,20 +8,27 @@ namespace chapter7._5
 {
     static class Constants
     {
-        public const int firstCapacity = 2;
-        public const int MAX = 128;
+        public const uint firstCapacity = 2;
+        public const uint MAX = 128;
     }
 
 
     class Vector<T>
     {
+
         private T[] data;
-        private int capacity = Constants.firstCapacity;
-        private int size = 0;
+        private uint capacity = Constants.firstCapacity;
+        private uint size = 0;
         private Type type;
 
+        //2020-05-05
+        public uint Count
+        {
+            get { return size; }
+        }
+
         public Vector()
-        {   
+        {
             data = new T[capacity];
             type = typeof(T);
             string outStr = "**********************************************";
@@ -33,13 +40,13 @@ namespace chapter7._5
         public override string ToString()
         {
             Console.WriteLine($"\nSize:{size}\nCapacity:{capacity}");
-            if(size == 0)
+            if (size == 0)
             {
                 Console.WriteLine("null");
             }
             else
             {
-                for(int i = 0; i < size; i++)
+                for (int i = 0; i < size; i++)
                 {
                     Console.Write($"{data[i]} ");
                     if (i < size - 1)
@@ -59,23 +66,25 @@ namespace chapter7._5
 
         //원소 추가
         public void push_back(T input_data)
-        {            
+        {
             if (size < capacity)
                 data[size++] = input_data;
             else
             {
-                resize(capacity = capacity * 2);
+                resize(capacity * 2);
                 data[size++] = input_data;
             }
         }
         //재할당
-        public void resize(int newSize)
+        public void resize(uint newSize)
         {
             if (newSize >= Constants.MAX)
                 return;
 
+            capacity = newSize;
+
             T[] tmp = new T[newSize];
-            for(int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++)
             {
                 tmp[i] = data[i];
             }
@@ -84,33 +93,99 @@ namespace chapter7._5
         //마지막 원소 제거
         public void pop_back()
         {
-            if (size == 0)
+            if (empty())
                 return;
 
-            //default는 7.0부터 지원
-            //그전 버전에서는 어떻게 사용?
             data[size--] = default(T);
-
         }
+
         //모든 원소를 제거, 메모리는 남아있음
         public void clear()
         {
             while (size != 0) { pop_back(); }
         }
 
-        public void removeAt(int _index)
+        //2020-05-05
+        //index에 원소 추가
+        public void insertAt(uint _index, T _val)
         {
-            if (_index < 0 || _index > size - 1)
-                return;
-
-            for(int i = _index; i < size; i++)
+            if (IsAvailableIndex(_index))
             {
-                data[i] = data[i + 1];
+                if (size >= capacity)
+                {
+                    resize(capacity * 2);
+                }
+
+                for (uint i = size - 1; i >= _index; i--) //한칸씩 밀기
+                {
+                    data[i + 1] = data[i];
+                }
+                data[_index] = _val;
             }
-            pop_back();
         }
+
+        //index로 원소 제거
+        public void removeAt(uint _index)
+        {
+            if (IsAvailableIndex(_index))
+            {
+                for (uint i = _index; i < size; i++)
+                {
+                    data[i] = data[i + 1];
+                }
+                pop_back();
+            }
+        }
+
+        //2020-05-05
+        public void addRange(uint _index, T[] arr)
+        {
+            if (IsAvailableIndex(_index))
+            {
+                int arrLength = arr.Length;
+                if (size + arrLength >= capacity)
+                {
+                    resize(capacity * 2);
+                }
+
+                int aIndex = arrLength - 1;
+                size += (uint)arrLength;
+                for (uint i = size - 1; aIndex >= 0; i--) 
+                {
+                    data[i] = data[i - arrLength];
+                    data[i - arrLength] = arr[aIndex--];
+                }
+                
+            }
+        }
+
+
+        //---------------------------------//
+
+        //2020-05-05
+        //index가 유효 범위에 있는지
+        //유효 : true
+        public bool IsAvailableIndex(uint _index)
+        {
+            if (_index > size - 1)
+            {
+                Console.WriteLine("\nIs not availble Index");
+                return false;
+            }
+            return true;
+        }
+
         //size가 0이면 true
-        public bool empty()
+        private bool empty()
+        {
+            if (size == 0)
+            {
+                Console.WriteLine("\n ---vector is empty---");
+                return true;
+            }
+            return false;
+        }
+        public bool isEmpty()
         {
             if (size == 0)
                 return true;
@@ -118,16 +193,16 @@ namespace chapter7._5
         }
 
         //원소의 개수를 리턴
-        public int getSize()
+        public uint getSize()
         {
             return size;
         }
         //할당된 공간의 크기를 리턴
-        public int getCapacity()
+        public uint getCapacity()
         {
             return capacity;
         }
-      
+
 
 
         //---------------------------------//
